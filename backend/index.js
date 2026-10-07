@@ -36,13 +36,18 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 // Serve frontend in production
-const distPath = path.join(__dirname, "../frontend/dist");
-app.use(express.static(distPath));
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-// Send index.html for any non-API route (so React Router works on refresh)
-app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
+  app.use((req, res) => {
+    res.sendFile(path.resolve(__dirname, "../frontend/build/index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("ShopNest API is running in Development mode...");
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 
