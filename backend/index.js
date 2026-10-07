@@ -1,23 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const connectDB = require("./config/db");
 const path = require("path");
 
+dotenv.config();
+
+const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 
-dotenv.config();
 connectDB();
 
 const app = express();
+
 app.use(
   cors({
-    origin: ["htpp://localhost:5173", process.env.FRONTEND_URL],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: ["http://localhost:5173", process.env.FRONTEND_URL].filter(Boolean),
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
@@ -25,23 +27,26 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send("Shopnest is working properly!");
-});
-
+// API routes
+app.get("/api/health", (req, res) => res.send("Shopnest is working properly!"));
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-// Serve frontend in production
-// Serve frontend in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/build")));
+// Unknown API routes -> JSON 404 (not index.html)
+app.use("/api", (req, res) => {
+  res.status(404).json({ message: "API route not found" });
+});
 
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.join(__dirname, "../frontend/dist");
+  app.use(express.static(distPath));
+
+  // React Router fallback
   app.use((req, res) => {
-    res.sendFile(path.resolve(__dirname, "../frontend/build/index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 } else {
   app.get("/", (req, res) => {
@@ -50,7 +55,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
