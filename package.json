@@ -1,0 +1,20 @@
+{
+  "name": "shopnest-fullstack",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Lakshay",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "install-all":"npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install": "cd backend && npm install && cd ../frontend && npm install",
+    "dev:server": "cd backend && npm run dev",
+    "dev:client": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build": "cd frontend && npm install && npm run build"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
